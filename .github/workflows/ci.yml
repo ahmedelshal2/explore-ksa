@@ -1,22 +1,22 @@
-name: Run Robot Framework Tests
+name: Run Functional & Non-Functional Tests
 
 on:
   push:
     branches:
-      - main  # تشغيل الاختبارات تلقائيًا عند أي تحديث على الفرع الرئيسي
+      - main
   pull_request:
     branches:
       - main
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # تشغيل على سيرفر Linux
+    runs-on: ubuntu-latest
 
     steps:
-      - name: 🛠️ Checkout Repository
-        uses: actions/checkout@v3  # تحميل الكود من المستودع
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: 🔧 Set up Python
+      - name: 🛠️ Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
@@ -26,12 +26,23 @@ jobs:
           pip install robotframework
           pip install robotframework-seleniumlibrary
           pip install webdriver-manager
+          pip install robotframework-requests  # لاختبارات الـ API إذا لزم الأمر
 
-      - name: 🚀 Run Robot Framework Tests
+      - name: 🌐 Setup Chrome WebDriver
         run: |
-          robot -d results tests/
+          sudo apt-get update
+          sudo apt-get install -y chromium-chromedriver
+          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
 
-      - name: 📊 Upload Test Results
+      - name: ✅ Run Functional Tests
+        run: |
+          robot -d results/functional tests/functional_tests.robot
+
+      - name: 🔍 Run Non-Functional Tests
+        run: |
+          robot -d results/non_functional tests/non_functional_tests.robot
+
+      - name: 📤 Upload Test Results
         uses: actions/upload-artifact@v3
         with:
           name: robot-test-results
